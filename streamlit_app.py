@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import json
 import pandas as pd
-import subprocess
 import time
 from datetime import datetime
 
@@ -136,7 +135,7 @@ last_run_data = load_json(LAST_RUN_FILE, {})
 subs_data = load_json(SUBSCRIBERS_FILE, [])
 
 with col_status:
-    st.success("🟢 ONLINE (Standalone)")
+    st.success("🟢 ONLINE (Cloud Native)")
     last_run_time = last_run_data.get('timestamp', '--')
     st.write(f"⏱️ **Last Run:** {last_run_time}")
 
@@ -180,12 +179,15 @@ action_col, health_col = st.columns(2)
 with action_col:
     st.subheader("⚡ Pipeline Controls")
     if st.button("⟳ Run Data Pipeline", use_container_width=True, type="primary"):
-        with st.spinner("Harvesting data across streams (~2 mins)..."):
+        with st.spinner("Executing pipeline in cloud environment..."):
             start_time = time.time()
             try:
-                result = subprocess.run(["python3", "main.py"], cwd=BASE_DIR, capture_output=True, text=True, check=True)
-                duration = round(time.time() - start_time, 2)
+                # Directly import and run your main pipeline script functions natively
+                import main
+                if hasattr(main, "main"):
+                    main.main()
                 
+                duration = round(time.time() - start_time, 2)
                 pipeline_stats = {
                     "last_duration": duration,
                     "success_rate": 100.0,
@@ -194,10 +196,10 @@ with action_col:
                 save_json(PIPELINE_STATS_FILE, pipeline_stats)
                 save_json(LAST_RUN_FILE, {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
                 
-                st.success("✅ Pipeline executed successfully! Refreshing dashboard...")
+                st.success("✅ Pipeline executed successfully in the cloud!")
                 st.rerun()
-            except subprocess.CalledProcessError as e:
-                st.error(f"❌ Pipeline failed: {e.stderr}")
+            except Exception as e:
+                st.error(f"❌ Pipeline execution failed: {str(e)}")
 
     btn_a, btn_b = st.columns(2)
     with btn_a:
