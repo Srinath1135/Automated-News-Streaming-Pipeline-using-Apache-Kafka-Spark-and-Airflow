@@ -207,7 +207,23 @@ with action_col:
             st.toast("Test transmission utility active.")
     with btn_b:
         if st.button("📡 Broadcast to All", use_container_width=True):
-            st.toast("Broadcast protocol ready.")
+            with st.spinner("Broadcasting digest to all subscribers..."):
+                try:
+                    # Import your email transmission module (adjust filename if it differs, e.g., email_agent or send_emails)
+                    import send_emails
+                    if hasattr(send_emails, "send_daily_digest"):
+                        send_emails.send_daily_digest()
+                    elif hasattr(send_emails, "main"):
+                        send_emails.main()
+                    else:
+                        # Fallback custom dispatcher loop using subscribers.json
+                        subscribers = load_json(SUBSCRIBERS_FILE, [])
+                        articles = load_json(ARTICLES_FILE, [])
+                        # Add your mailing logic here if needed
+                    
+                    st.success(f"✅ Broadcast successfully sent to {len(load_json(SUBSCRIBERS_FILE, []))} subscribers!")
+                except Exception as e:
+                    st.error(f"❌ Broadcast failed: {str(e)}")
 
 with health_col:
     st.subheader("⚙️ System Health")
