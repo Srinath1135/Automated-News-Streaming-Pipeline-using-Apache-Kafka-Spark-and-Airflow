@@ -4,3 +4,5 @@ requests
 python-dotenv
 google-api-python-client
 groq
+feedparser
+beautifulsoup4
