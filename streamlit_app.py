@@ -1,7 +1,8 @@
 import os
 import json
 import pandas as pd
-import streamlit as st
+import subprocess
+import time
 from datetime import datetime
 
 # --- CONFIGURATION & PAGE SETUP ---
@@ -178,7 +179,24 @@ action_col, health_col = st.columns(2)
 with action_col:
     st.subheader("⚡ Pipeline Controls")
     if st.button("⟳ Run Data Pipeline", use_container_width=True, type="primary"):
-        st.info("Pipeline execution simulation / background runner triggered.")
+        with st.spinner("Harvesting data across streams (~2 mins)..."):
+            start_time = time.time()
+            try:
+                result = subprocess.run(["python3", "main.py"], cwd=BASE_DIR, capture_output=True, text=True, check=True)
+                duration = round(time.time() - start_time, 2)
+                
+                pipeline_stats = {
+                    "last_duration": duration,
+                    "success_rate": 100.0,
+                    "last_articles": len(load_json(ARTICLES_FILE, []))
+                }
+                save_json(PIPELINE_STATS_FILE, pipeline_stats)
+                save_json(LAST_RUN_FILE, {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+                
+                st.success("✅ Pipeline executed successfully! Refreshing dashboard...")
+                st.rerun()
+            except subprocess.CalledProcessError as e:
+                st.error(f"❌ Pipeline failed: {e.stderr}")
 
     btn_a, btn_b = st.columns(2)
     with btn_a:
@@ -229,7 +247,7 @@ st.write("Want to stop receiving daily digests? Enter your email below to opt ou
 unsub_col1, unsub_col2 = st.columns([3, 1])
 
 with unsub_col1:
-    unsub_email = st.text_input("Unsubscribe Email Address", placeholder="user@example.com", label_visibility="collapsed", key="unsub_input")
+    unsub_email = st.text_input("Unsubscribe Email Address", placeholder="user@example.com", label_visibility="collapsed", key="unsub_input_field")
 
 with unsub_col2:
     if st.button("Unsubscribe", use_container_width=True):
@@ -266,4 +284,4 @@ if ranked_articles:
             st.caption(summary[:200] + "...")
             st.link_button("Read Source ↗", url)
 else:
-    st.info("No ingested articles found in saved records.")
+    st.info("No ingested articles found in saved records. Click 'Run Data Pipeline' above to harvest data.")
