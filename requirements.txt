@@ -1,4 +1,6 @@
 streamlit
-requests
 pandas
+requests
 python-dotenv
+google-api-python-client
+groq
