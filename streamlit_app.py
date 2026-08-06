@@ -191,6 +191,28 @@ with sub_col2:
                 st.error(f"❌ {error_msg}")
         else:
             st.warning("⚠️ Please enter a valid email address.")
+            
+# --- UNSUBSCRIBE SECTION ---
+st.subheader("🗑️ Remove Subscription")
+st.write("Want to stop receiving daily digests? Enter your email below to opt out.")
+
+unsub_col1, unsub_col2 = st.columns([3, 1])
+
+with unsub_col1:
+    unsub_email = st.text_input("Unsubscribe Email Address", placeholder="user@example.com", label_visibility="collapsed", key="unsub_input")
+
+with unsub_col2:
+    if st.button("Unsubscribe", use_container_width=True):
+        if unsub_email and "@" in unsub_email:
+            res = fetch_api("unsubscribe", method="POST", payload={"email": unsub_email})
+            
+            if res and res.get("success"):
+                st.success(f"✅ {res.get('message', 'Successfully unsubscribed.')}")
+            else:
+                error_msg = res.get('message', 'Failed to unsubscribe.') if res else 'API Offline'
+                st.error(f"🗑️ {error_msg}")
+        else:
+            st.warning("⚠️ Please enter a valid email address.")
 
 # --- PERSONALIZED FEED ---
 st.subheader("📰 Real-Time Intelligence Feed")
